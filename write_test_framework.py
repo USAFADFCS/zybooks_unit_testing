@@ -3,17 +3,16 @@ from unittest.mock import patch
 from io import StringIO
 from contextlib import redirect_stdout
 
-# Update test_inputs as needed
-# Update the answer you are expecting returned
-# Update the function name you are looking for
-# Update the patch "builtins.input" line
-# Update the feedback messages as needed
+# Framework version identifier
+VERSION = 1.0
 
+# Unit test function to check file writing functionality
 def test_passed(test_feedback):
     test_passed = True
 
-# Below is to create the answer and inputs
-
+    # -------------------------
+    # Section to create the answer and inputs
+    # -------------------------
     write_file = "career_choices.csv"
     test_input = []
 
@@ -42,26 +41,31 @@ def test_passed(test_feedback):
         test_input.append(reason)
 
     expected = "\n".join(f"{test_input[i]}, {test_input[i+1]}" for i in range(0, len(test_input), 2))
-# Above is to create the answer and inputs
+    # -------------------------
+    # End of section to create the answer and inputs
+    # -------------------------
 
+    # Use a mocked open to intercept file operations and track if they happen
     mocked, flags = shared_functions.make_mocked_open(write_file)
 
     try:
         sink = StringIO()
         with redirect_stdout(sink):
-# if you have test_inputs use side_effects = test_inputs
-# if you do not have any test_inputs use side_effects = shared_functions.dummy_input
-            with patch("builtins.input", side_effect = test_input):
-                with patch("builtins.open", side_effect = mocked):
+            # Patch input and open to simulate the student's program execution
+            with patch("builtins.input", side_effect=test_input):
+                with patch("builtins.open", side_effect=mocked):
                     stu_main = shared_functions.fresh_import('main', test_feedback)
-    
-    except EOFError as e:
-        test_feedback.write(f"There were more then the {len(test_input)} expected inputs.")
+
+    except EOFError:
+        # Student requested more inputs than were provided
+        test_feedback.write(f"There were more than the {len(test_input)} expected inputs.")
         return False
     except FileNotFoundError as e:
+        # Student file does not exist
         test_feedback.write(f"{e.strerror}: {e.filename}")
         return False
-    
+
+    # Check if the file was accessed and written to
     accessed, written = flags()
 
     if accessed:
@@ -78,10 +82,12 @@ def test_passed(test_feedback):
         feedback_msg += f"HINT: Check that you wrote to the file"
         test_passed = False
 
+    # If the file was written, compare the contents to the expected output
     if test_passed:
         with open("cadet_preferences.csv", "r") as f:
             file_contents = f.read().strip()
-        if file_contents == expected.strip():
+        # Normalize spacing between commas for comparison
+        if file_contents.replace(", ", ",") == expected.strip().replace(", ", ","):
             feedback_msg += f"\tThe file contents match the expected values\n"
             feedback_msg += "FILE CONTENTS:" + expected
         else:
@@ -89,6 +95,7 @@ def test_passed(test_feedback):
             feedback_msg += "EXPECTED CONTENTS: " + expected
             feedback_msg += "YOUR FILE: " + file_contents
             test_passed = False
-    
+
+    # Write feedback to the provided feedback object
     test_feedback.write(f"RESULTS:\n\t{feedback_msg}")
     return test_passed

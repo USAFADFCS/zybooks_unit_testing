@@ -3,17 +3,15 @@ from unittest.mock import patch
 from io import StringIO
 from contextlib import redirect_stdout
 
-# Update test_inputs as needed
-# Update the answer you are expecting returned
-# Update the function name you are looking for
-# Update the patch "builtins.input" line
-# Update the feedback messages as needed
+# Framework version identifier
+VERSION = 1.0
 
+# Framework-style test function to check return value of the given function from student code
 def test_passed(test_feedback):
-    test_passed = True
-
-# Below is to create the answer and inputs
-    num_cadets = random.randint(2,10)
+    # -------------------------
+    # SECTION: Generate answer and inputs
+    # -------------------------
+    num_cadets = random.randint(2,10)  # Example: number of items to test
     test_inputs = [num_cadets]
     list1 = []
 
@@ -50,42 +48,59 @@ def test_passed(test_feedback):
    
     answer = analyze_run_times(list1)
     check_fun = "analyze_run_times"
-# Above is to create the answer and inputs
 
+    # Above section is intended to be updated per specific test case
+
+    # Initialize test result as True
+    test_passed = True
+
+    # -------------------------
+    # SECTION: Execute student's code with mocked input
+    # -------------------------
     try:
-        sink = StringIO()
+        sink = StringIO()  # Capture stdout for analysis
         with redirect_stdout(sink):
-            # if you have test_inputs use side_effects = test_inputs
-            # if you do not have any test_inputs use side_effects = shared_functions.dummy_input
-            with patch("builtins.input", side_effect = test_inputs):
+            # Patch input() to provide controlled test inputs
+            # Replace side_effect with either test_inputs or dummy_input as needed
+            with patch("builtins.input", side_effect=test_inputs):
                 stu_main = shared_functions.fresh_import('main', test_feedback)
     
     except EOFError as e:
-        test_feedback.write(f"There were more then the {len(test_inputs)} expected inputs.")
+        test_feedback.write(f"There were more than the {len(test_inputs)} expected inputs.")
         return False
     
     except FileNotFoundError as e:
         test_feedback.write(f"{e.strerror}: {e.filename}")
         return False
             
+    # -------------------------
+    # SECTION: Verify student's function existence and signature
+    # -------------------------
     test_passed, feedback_msg = shared_functions.check_function(check_fun, stu_main, test_inputs)
 
-    if test_passed == False:
+    if not test_passed:
         test_feedback.write(f"RESULTS:\n\t{feedback_msg}")
         return test_passed
     else:
+        # Retrieve the student's function for further testing
         stu_fun = getattr(stu_main, check_fun)
 
+    # -------------------------
+    # SECTION: Compare student's output with expected answer
+    # -------------------------
     if stu_fun(list1) == answer:
-        feedback_msg += f"\tThe return from '{check_fun}' was the expect value of '{answer}'"
-    elif math.isclose(stu_fun(list1),answer, abs_tol=0.01):
-        feedback_msg += f"\tThe return from '{check_fun}' was '{stu_fun(list1)}' instead of the expected '{answer}'"
+        feedback_msg += f"\tThe return from '{check_fun}' was the expected value '{answer}'"
+    elif math.isclose(stu_fun(list1), answer, abs_tol=0.01):
+        feedback_msg += f"\tThe return from '{check_fun}' was '{stu_fun(list1)}' instead of '{answer}'"
         feedback_msg += f"\nHINT: Check that you rounded to 2 decimal places"
         test_passed = False
     else:
-        feedback_msg += f"\tThe return from '{check_fun}' was '{stu_fun(list1)}' instead of the expected '{answer}'"
+        feedback_msg += f"\tThe return from '{check_fun}' was '{stu_fun(list1)}' instead of '{answer}'"
         feedback_msg += f"\nHINT: Check your return statement and math"
         test_passed = False
 
+    # -------------------------
+    # SECTION: Output final feedback
+    # -------------------------
     test_feedback.write(f"RESULTS:\n\t{feedback_msg}")
     return test_passed
