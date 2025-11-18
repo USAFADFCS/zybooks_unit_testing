@@ -15,3 +15,13 @@ This framework provides reusable tools and templates to create automated unit te
 - **Customizable Test Templates**: Easily adapt tests for different exercises by changing the "answer/input" section.
 
 ---
+
+## Shared functions
+
+- **fake_open(expected_file_name, file_name, redirect_file, expected_mode, mode='r')** Redirects specific file opens to a different file for testing.
+- **fresh_import(module_name: str = 'main', feedback_file = None) -> ModuleType:** Re-imports the student's module so tests run on a clean copy
+- **dummy_input(prompt=None)** Replacement for input() when testing
+- **check_function(name, program, \*args)** Validates function existence, parameter count, and callability
+- **compare_lists(stu_list, expected_list, float_tol=1e-9, field_names=None)** Compares two structured lists (list of lists) with numeric tolerances
+- **check_print(sink, expected_fstring, case_sensitive=False)** Searches captured print output using regex
+- **check_variable(name, program, var_type)** Verifies variable existence and type
