@@ -149,8 +149,10 @@ def check_print(sink, expected_fstring, case_sensitive=False):
     Searches the captured output (sink) for the expected text.
     Can perform case-sensitive or case-insensitive match.
     """
+    if sink == None: return False
+    expected_text = re.escape(expected_fstring)
     flags = 0 if case_sensitive else re.IGNORECASE
-    return bool(re.search(expected_fstring, sink, flags))
+    return bool(re.search(expected_text, sink, flags))
 
 # ---------------------------------------------------------
 # check_variable()
@@ -276,3 +278,12 @@ def make_mocked_open(target_file=None):
         return accessed, read_written
 
     return mocked_open, get_flags
+
+# ---------------------------------------------------------
+# match_output()
+# Return True if expected phrase is in the printed output, ignoring spaces and case 
+# ---------------------------------------------------------
+def match_output(sink, expected):
+    sink_clean = " ".join(sink.lower().split())
+    expected_clean = " ".join(expected.lower().split())
+    return expected_clean in sink_clean
